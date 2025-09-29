@@ -1,17 +1,30 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { projects } from '@/data/mockData'
 import Navbar from '@/components/Navbar'
 import ProjectCard from '@/components/ProjectCard'
+import SplashScreen from '@/components/SplashScreen'
+import { useAuth } from '@/contexts/AuthContext'
 import { GraduationCap, Users, Lightbulb } from 'lucide-react'
 
 export default function Home() {
+  const [showSplash, setShowSplash] = useState(true)
   const [filters, setFilters] = useState({
     graduationYear: '',
     school: '',
     search: ''
   })
+  const { isAuthenticated } = useAuth()
+
+  useEffect(() => {
+    // Show splash screen for 3 seconds on first visit
+    const timer = setTimeout(() => {
+      setShowSplash(false)
+    }, 3000)
+
+    return () => clearTimeout(timer)
+  }, [])
 
   const filteredProjects = useMemo(() => {
     return projects.filter(project => {
@@ -26,6 +39,10 @@ export default function Home() {
       return matchesYear && matchesSchool && matchesSearch
     })
   }, [filters])
+
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />
+  }
 
   return (
     <div className="min-h-screen bg-light-gray">
@@ -47,9 +64,18 @@ export default function Home() {
               <button className="btn-secondary text-lg px-8 py-4">
                 Explore Projects
               </button>
-              <button className="border-2 border-white text-white hover:bg-white hover:text-dark-blue px-8 py-4 rounded-lg font-medium transition-colors duration-200">
-                Submit Your Project
-              </button>
+              {isAuthenticated ? (
+                <button className="border-2 border-white text-white hover:bg-white hover:text-dark-blue px-8 py-4 rounded-lg font-medium transition-colors duration-200">
+                  Submit Your Project
+                </button>
+              ) : (
+                <a
+                  href="/login"
+                  className="border-2 border-white text-white hover:bg-white hover:text-dark-blue px-8 py-4 rounded-lg font-medium transition-colors duration-200 text-center"
+                >
+                  Sign In to Submit
+                </a>
+              )}
             </div>
           </div>
         </div>
